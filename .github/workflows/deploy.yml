@@ -1,0 +1,33 @@
+name: Deploy CloudFormation
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Stack
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Código
+        uses: actions/checkout@v2
+
+      - name: Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Validar Template CloudFormation
+        run: |
+          aws cloudformation validate-template --template-body file://cloudformation/templates/template.yaml
+
+      - name: Criar/Atualizar Stack CloudFormation
+        run: |
+          aws cloudformation deploy \
+            --stack-name MeuSistemaServerless \
+            --template-file cloudformation/templates/template.yaml \
+            --capabilities CAPABILITY_NAMED_IAM
